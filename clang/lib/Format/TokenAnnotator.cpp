@@ -3224,14 +3224,18 @@ bool TokenAnnotator::mustBreakBefore(const AnnotatedLine &Line,
       Right.Previous->MatchingParen->NestingLevel == 0 &&
       Style.AlwaysBreakTemplateDeclarations == FormatStyle::BTDS_Yes)
     return true;
-  if (Right.is(TT_CtorInitializerComma) &&
-      Style.BreakConstructorInitializers == FormatStyle::BCIS_BeforeComma &&
-      !Style.ConstructorInitializerAllOnOneLineOrOnePerLine)
-    return true;
-  if (Right.is(TT_CtorInitializerColon) &&
-      Style.BreakConstructorInitializers == FormatStyle::BCIS_BeforeComma &&
-      !Style.ConstructorInitializerAllOnOneLineOrOnePerLine)
-    return true;
+  if (!Style.ConstructorInitializerAllOnOneLineOrOnePerLine) {
+    if ((Style.BreakConstructorInitializers == FormatStyle::BCIS_BeforeComma &&
+         (Right.is(TT_CtorInitializerColon) ||
+          Right.is(TT_CtorInitializerComma))) ||
+        (Style.BreakConstructorInitializers == FormatStyle::BCIS_AfterColon &&
+         (Left.is(TT_CtorInitializerColon) ||
+          Left.is(TT_CtorInitializerComma))) ||
+        (Style.BreakConstructorInitializers == FormatStyle::BCIS_BeforeColon &&
+         (Right.is(TT_CtorInitializerColon) ||
+          Left.is(TT_CtorInitializerComma))))
+      return true;
+  }
   // Break only if we have multiple inheritance.
   if (Style.BreakInheritanceList == FormatStyle::BILS_BeforeComma &&
       Right.is(TT_InheritanceComma))
